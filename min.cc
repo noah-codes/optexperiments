@@ -34,6 +34,11 @@ double derror(vector<double> x, F f, F h)
 	return sum;
 }
 
+double derror_online(double x, F f, F h)
+{
+	return (f(x) - h(x)) * x;
+}
+
 auto build_h(double n) -> function<double (double)>
 {
 	return [=] (double x) { return n * x; };
@@ -41,20 +46,29 @@ auto build_h(double n) -> function<double (double)>
 
 int main(int argc, char * argv[])
 {
+	// X
 	vector<double> x;
 	for (int i = -50; i < 50; ++i)
 	{
 		x.push_back(i);
 	}
 	
+	// Target function
 	auto f = [] (double x) { return 3 * x; };
 	
-	for(int i = -6; i <= 6; ++i)
+	// Initial
+	double n = 0;
+	auto h = build_h(n);
+	
+	for(int i = 0; i < 25; i++)
 	{
-		auto h = build_h(i);
-		cout << "HYPOTHESIS: h(x) = " << i << "x" << endl;
-		cout << "ERROR: " << error(x, f, h) << endl;	
-		cout << "DERIV: " << derror(x, f, h) << endl;
+		double g = derror_online(x[i], f, h);
+		n += 0.0005 * derror_online(x[i], f, h);
+		h = build_h(n);
+		cout << "g: " << g << endl;
+		cout << "n: " << n << endl;
+		cout << "e: " << error(x, f, h) << endl;
+		cout << endl;
 	}
 }
 
