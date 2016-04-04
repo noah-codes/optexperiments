@@ -3,9 +3,11 @@
 #include <vector>
 #include <stdlib.h>
 
+// TODO : http://axon.cs.byu.edu/papers/Wilson.nn03.batch.pdf
+
 using namespace std;
 
-typedef double (*F) (double);
+typedef function<double (double)> F;
 
 // F : double --> double
 double error(vector<double> x, F f, F h)
@@ -20,15 +22,16 @@ double error(vector<double> x, F f, F h)
 	return sum / x.size();
 }
 
-double derror(vector<double> x, F f, F h, F dh)
+// Key point : note that since we're deriving with respect to the weights, the derivative is *i NOT n
+double derror(vector<double> x, F f, F h)
 {
 	double sum = 0;
 	for(vector<double>::iterator i = x.begin(); i != x.end(); ++i)
 	{
-		sum += (f(*i) - h(*i)) * dh(*i);
+		sum += (f(*i) - h(*i)) * (*i);
 	}
 	
-	return 2 * sum;
+	return sum;
 }
 
 auto build_h(double n) -> function<double (double)>
@@ -38,19 +41,21 @@ auto build_h(double n) -> function<double (double)>
 
 int main(int argc, char * argv[])
 {
-	auto f = [] (double x) { return 2 * x; };
-	auto h = [] (double x) { return 2 * x; };
-	
-	auto g = build_h(3);
-	cout << g(10) << endl;
-	
 	vector<double> x;
-	x.push_back(10);
-	x.push_back(11);
-	x.push_back(11);
-	x.push_back(12);
+	for (int i = -50; i < 50; ++i)
+	{
+		x.push_back(i);
+	}
 	
-	cout << error(x, f, h) << endl;
+	auto f = [] (double x) { return 3 * x; };
+	
+	for(int i = -6; i <= 6; ++i)
+	{
+		auto h = build_h(i);
+		cout << "HYPOTHESIS: h(x) = " << i << "x" << endl;
+		cout << "ERROR: " << error(x, f, h) << endl;	
+		cout << "DERIV: " << derror(x, f, h) << endl;
+	}
 }
 
 
